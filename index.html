@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Crowd voting test</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #000000;
+      color: #fffff6;
+      margin: 0
+    }
+    h2 {
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 50px;
+      font-weight: 700;
+      margin-top: 75px;
+      margin-bottom: 50px;
+      color: #ede41b;
+    }
+    .chart-container {
+      width: 85vw;          /* 80% del ancho de la ventana */
+      margin: 0 auto;       /* Centrar */
+    }
+    #myChart {
+      width: 100% !important;
+      height: auto !important;
+    }
+    .title-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 75px;
+      margin-bottom: 50px;
+    }
+
+    .images-left,
+    .images-right {
+      display: flex;
+      gap: 15px;
+    }
+
+    .images-left img,
+    .images-right img {
+      max-height: 25px;   /* controla el tamaño sin deformar */
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* Quitamos márgenes al h2 para que no descuadre */
+    .title-wrapper h2 {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="title-wrapper">
+    <div class="images-left">
+      <!--
+      <img src="GSMA_MWC_LogoLockup_White_RGB - Copy.png" alt="Imagen 1">
+      -->
+      <img src="GSMA Open Gateway logo - White over black.png" alt="Imagen 2">
+      <img src="NOKIA logo - White over black.png" alt="Imagen 3">
+      <img src="Google-Cloud-Logo-1024x267-1.png" alt="Imagen 4">
+    </div>
+
+    <h2>OPEN GATEWAY HACKATHON </h2>
+
+    <div class="images-right">
+      
+      <img src="TELEFONICA logo - White over black.png" alt="Imagen 5">
+      <img src="VODAFONE logo - White over black.png" alt="Imagen 6">
+      <!--
+      <img src="ORANGE logo - White over black.png" alt="Imagen 7">
+      -->
+      <img src="MAS ORANGE logo - White over black.png" alt="Imagen 8">
+    </div>
+  </div>
+  <div class="chart-container">
+    <canvas id="myChart"></canvas>
+  </div>
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxIHFBrKovdO--m1ok2MoS4jVpfWO8LkWPbJ5yaA1b6_p2cfS81E6O2jXWMwgjp4FSm6w/exec";
+
+    let chart;
+
+    async function cargarDatos() {
+      const res = await fetch(API_URL);
+      const datos = await res.json();
+      return datos;
+    }
+
+    async function actualizarGrafico() {
+      const datos = await cargarDatos();
+
+      const labels = datos.map(d => d.fecha || d.Fecha || d[Object.keys(d)[0]]);
+      const valores = datos.map(d => d.valor || d.Valor || d[Object.keys(d)[1]]);
+
+      if (!chart) {
+        // Crear gráfico por primera vez
+        const ctx = document.getElementById("myChart").getContext("2d");
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, "#ede41b");
+        gradient.addColorStop(1, "#bfb700");
+
+        chart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              label: "LIVE CROWD VOTING",
+              data: valores,
+              borderColor: "#ede41b",
+              backgroundColor: "#ede41b",
+              borderWidth: 0,
+              borderRadius: 20,
+              borderSkipped: false,
+              barPercentage: 0.6,
+            }]
+          },
+          options: {
+            animation: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#fffff6",   // color de la llegenda
+                  font: {
+                    family: "'Space Grotesk', sans-serif",
+                    size: 20
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: {
+                  color: "#fffff6",
+                  font: {
+                    family: "'Space Grotesk', sans-serif",
+                    size: 30
+                  }
+                },   // etiquetes de l'eix X
+                grid: {
+                  //color: "#444" // línies de reixeta fosques
+                  display: false
+                }   
+              },
+              y: {
+                min: 0,   // valor mínim de l'eix Y
+                max: 5,   // valor màxim de l'eix Y
+                ticks: {
+                  stepSize: 1,
+                  precision: 0,
+                  color: "#fffff6",
+                  font: {
+                    family: "'Space Grotesk', sans-serif",
+                    size: 20
+                  }
+                },   // etiquetes de l'eix Y
+                grid: {
+                  // color: "#444" // línies de reixeta fosques
+                  color: "rgba(255,255,255,0.1)", // muy sutil
+                  drawBorder: false
+                }
+              }
+            }
+          }
+        });
+      } else {
+        // Actualizar gráfico sin recrearlo
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = valores;
+        chart.update();
+      }
+    }
+
+    // Cargar inicialmente
+    actualizarGrafico();
+
+    // Actualizar cada 5 segundos
+    setInterval(actualizarGrafico, 5000);
+  </script>
+</body>
+</html>
